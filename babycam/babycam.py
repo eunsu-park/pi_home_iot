@@ -1,4 +1,6 @@
+import os
 import cv2
+import time
 from flask import Flask, render_template, Response
 from picamera2 import Picamera2, Preview
 
@@ -24,15 +26,50 @@ def index():
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/set_brightness/<int:brightness>')
-def set_brightness(brightness):
-    camera.set_controls({"Brightness": brightness})
-    return f"Brightness set to {brightness}"
+@app.route('/set_brightness/<int:value>')
+def set_brightness(value):
+    camera.set_controls({"Brightness": value})
+    return f"Brightness set to {value}"
 
 @app.route('/set_contrast/<int:contrast>')
 def set_contrast(contrast):
     camera.set_controls({"Contrast": contrast})
     return f"Contrast set to {contrast}"
+
+@app.route('/capture')
+def capture():
+    frame = camera.capture_array()
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    filename = f'static/captures/{timestamp}.jpg'
+    cv2.imwrite(filename, frame)
+    return f"Captured {filename}"
+
+recording = False
+
+@app.route('/start_recording')
+def start_recording():
+    global recording
+    if not recording:
+        recording = True
+        os.system("libcamera-vid -o static/video.h264 -t 0 &")
+    return "Recording started"
+
+@app.route('/stop_recording')
+def stop_recording():
+    global recording
+    if recording:
+        recording = False
+        os.system("pkill -SIGINT libcamera-vid")
+    return "Recording stopped"
+
+
+@app.route('/status')
+def status():
+    global recording
+    status = "Streaming"
+    if recording:
+        status = "Recording"
+    return {"status": status}
 
 if __name__ == '__main__':
     import argparse

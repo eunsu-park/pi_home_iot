@@ -7,5 +7,69 @@
   <body>
     <h1>Raspberry Pi Camera Stream</h1>
     <img src="{{ url_for('video_feed') }}" width="640" height="480">
+
+    <button onclick="capturePhoto()">Capture Photo</button>
+    <script>
+    function capturePhoto() {
+        fetch('/capture').then(response => {
+            return response.text();
+        }).then(data => {
+            alert(data);
+        });
+    }
+    </script>
+
+<label for="brightness">Brightness:</label>
+<input type="range" id="brightness" name="brightness" min="0" max="100" oninput="setBrightness(this.value)">
+<script>
+function setBrightness(value) {
+    fetch(`/set_brightness/${value}`).then(response => {
+        return response.text();
+    }).then(data => {
+        console.log(data);
+    });
+}
+
+</script>
+
+<button onclick="startRecording()">Start Recording</button>
+<button onclick="stopRecording()">Stop Recording</button>
+<script>
+function startRecording() {
+    fetch('/start_recording').then(response => {
+        return response.text();
+    }).then(data => {
+        alert(data);
+    });
+}
+
+function stopRecording() {
+    fetch('/stop_recording').then(response => {
+        return response.text();
+    }).then(data => {
+        alert(data);
+    });
+}
+</script>
+
+<video width="320" height="240" controls>
+    <source src="{{ url_for('static', filename='video.h264') }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <p id="status">Status: Idle</p>
+  <script>
+  function updateStatus() {
+      fetch('/status').then(response => {
+          return response.json();
+      }).then(data => {
+          document.getElementById('status').innerText = "Status: " + data.status;
+      });
+  }
+  
+  // Call updateStatus periodically
+  setInterval(updateStatus, 1000);
+  </script>
+
   </body>
 </html>
