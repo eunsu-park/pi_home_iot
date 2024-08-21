@@ -40,4 +40,11 @@ def set_contrast(contrast):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--address", type=str, help="Address to listen on")
+    parser.add_argument("--port", type=int, help="Port to listen on")
+    args = parser.parse_args()
+
+    app.run(host=args.address, port=args.port)
